@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import { blockUser, unblockUser, getBlockStatus } from '../services/user';
-import { useAuth } from '../features/auth/AuthContext';
-import { publicUrl } from '../untils/publicUrl';
-import './FriendsListPage.scss';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../services/api";
+import { blockUser, unblockUser, getBlockStatus } from "../services/user";
+import { publicUrl } from "../untils/publicUrl";
+import "./FriendsListPage.scss";
 
 interface Friend {
   _id: string;
@@ -20,7 +19,6 @@ const FriendsListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [blockStatus, setBlockStatus] = useState<Record<string, boolean>>({});
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,9 +28,9 @@ const FriendsListPage: React.FC = () => {
   const fetchFriends = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/friends/list');
+      const response = await api.get("/friends/list");
       const friendsData = response.data.friends || response.data;
-      
+
       // Transform data to match our interface
       const formattedFriends = friendsData.map((friend: any) => ({
         _id: friend._id || friend.id,
@@ -40,11 +38,11 @@ const FriendsListPage: React.FC = () => {
         fullName: friend.fullName || friend.username,
         avatar: friend.avatar || friend.profilePicture,
         isOnline: friend.isOnline || false,
-        lastSeen: friend.lastSeen
+        lastSeen: friend.lastSeen,
       }));
-      
+
       setFriends(formattedFriends);
-      
+
       // Fetch block status for each friend
       const blockStatusMap: Record<string, boolean> = {};
       for (const friend of formattedFriends) {
@@ -58,8 +56,8 @@ const FriendsListPage: React.FC = () => {
       }
       setBlockStatus(blockStatusMap);
     } catch (err) {
-      console.error('Error fetching friends:', err);
-      setError('Failed to load friends list');
+      console.error("Error fetching friends:", err);
+      setError("Failed to load friends list");
     } finally {
       setLoading(false);
     }
@@ -68,48 +66,54 @@ const FriendsListPage: React.FC = () => {
   const handleBlockUser = async (friendId: string) => {
     try {
       await blockUser(friendId);
-      setBlockStatus(prev => ({ ...prev, [friendId]: true }));
+      setBlockStatus((prev) => ({ ...prev, [friendId]: true }));
       // Show success notification
-      alert('User blocked successfully');
+      alert("User blocked successfully");
     } catch (err) {
-      console.error('Error blocking user:', err);
-      alert('Failed to block user');
+      console.error("Error blocking user:", err);
+      alert("Failed to block user");
     }
   };
 
   const handleUnblockUser = async (friendId: string) => {
     try {
       await unblockUser(friendId);
-      setBlockStatus(prev => ({ ...prev, [friendId]: false }));
+      setBlockStatus((prev) => ({ ...prev, [friendId]: false }));
       // Show success notification
-      alert('User unblocked successfully');
+      alert("User unblocked successfully");
     } catch (err) {
-      console.error('Error unblocking user:', err);
-      alert('Failed to unblock user');
+      console.error("Error unblocking user:", err);
+      alert("Failed to unblock user");
     }
   };
 
   const handleUnfriend = async (friendId: string) => {
-    if (!window.confirm('Are you sure you want to remove this friend?')) {
+    if (!window.confirm("Are you sure you want to remove this friend?")) {
       return;
     }
 
     try {
       await api.delete(`/friends/${friendId}`);
-      setFriends(prev => prev.filter(friend => friend._id !== friendId));
+      setFriends((prev) => prev.filter((friend) => friend._id !== friendId));
       // Show success notification
-      alert('Friend removed successfully');
+      alert("Friend removed successfully");
     } catch (err) {
-      console.error('Error removing friend:', err);
-      alert('Failed to remove friend');
+      console.error("Error removing friend:", err);
+      alert("Failed to remove friend");
     }
   };
 
-  const handleChat = async (friendId: string, username: string, avatar?: string) => {
+  const handleChat = async (
+    friendId: string,
+    username: string,
+    avatar?: string
+  ) => {
     // Emit event to open DM (handled by ChatPage)
-    window.dispatchEvent(new CustomEvent('open-dm', {
-      detail: { userId: friendId, username, avatar }
-    }));
+    window.dispatchEvent(
+      new CustomEvent("open-dm", {
+        detail: { userId: friendId, username, avatar },
+      })
+    );
   };
 
   const handleViewProfile = (friendId: string, username: string) => {
@@ -149,29 +153,41 @@ const FriendsListPage: React.FC = () => {
         {friends.length === 0 ? (
           <div className="no-friends">You don't have any friends yet.</div>
         ) : (
-          friends.map(friend => (
+          friends.map((friend) => (
             <div key={friend._id} className="friend-item">
               <div className="friend-info">
                 <div className="friend-avatar">
-                  <img 
-                    src={friend.avatar ? publicUrl(friend.avatar) : '/images/default-user.png'} 
+                  <img
+                    src={
+                      friend.avatar
+                        ? publicUrl(friend.avatar)
+                        : "/images/default-user.png"
+                    }
                     alt={friend.username}
                   />
-                  <span className={`status-indicator ${friend.isOnline ? 'online' : 'offline'}`}></span>
+                  <span
+                    className={`status-indicator ${
+                      friend.isOnline ? "online" : "offline"
+                    }`}
+                  ></span>
                 </div>
                 <div className="friend-details">
                   <h3 className="friend-name">{friend.fullName}</h3>
                   <p className="friend-username">@{friend.username}</p>
                   <p className="friend-status">
-                    {friend.isOnline ? 'Online' : `Last seen ${formatLastSeen(friend.lastSeen)}`}
+                    {friend.isOnline
+                      ? "Online"
+                      : `Last seen ${formatLastSeen(friend.lastSeen)}`}
                   </p>
                 </div>
               </div>
-              
+
               <div className="friend-actions">
                 <button
                   className="btn btn-primary"
-                  onClick={() => handleChat(friend._id, friend.username, friend.avatar)}
+                  onClick={() =>
+                    handleChat(friend._id, friend.username, friend.avatar)
+                  }
                 >
                   Chat
                 </button>
@@ -212,15 +228,15 @@ const FriendsListPage: React.FC = () => {
 };
 
 const formatLastSeen = (timestamp?: number): string => {
-  if (!timestamp) return 'a long time ago';
-  
+  if (!timestamp) return "a long time ago";
+
   const now = Date.now();
   const diff = now - timestamp;
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-  
-  if (minutes < 1) return 'just now';
+
+  if (minutes < 1) return "just now";
   if (minutes < 60) return `${minutes} minutes ago`;
   if (hours < 24) return `${hours} hours ago`;
   return `${days} days ago`;

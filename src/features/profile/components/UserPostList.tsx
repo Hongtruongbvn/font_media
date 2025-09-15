@@ -40,11 +40,13 @@ const UserPostList: React.FC<UserPostListProps> = ({ userId }) => {
           key={post._id}
           post={post}
           onReact={() => { } }
-          onRepost={() => { } } onPostDeleted={function (postId: string): void {
+          onRepost={() => { } } onPostDeleted={function (_postId: string): void {
             throw new Error('Function not implemented.');
-          } } onCommentAdded={function (postId: string): void {
+          } } onCommentAdded={function (_postId: string): void {
             throw new Error('Function not implemented.');
-          } } onCommentDeleted={function (postId: string): void {
+          } } onCommentDeleted={function (_postId: string): void {
+            throw new Error('Function not implemented.');
+          } } onPostUpdated={function (_updatedPost: Post): void {
             throw new Error('Function not implemented.');
           } }        />
       ))}

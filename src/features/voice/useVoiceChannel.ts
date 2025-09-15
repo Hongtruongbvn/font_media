@@ -33,7 +33,8 @@ export function useVoiceChannel(roomId: string) {
   const getBlankVideoTrack = useCallback((): MediaStreamTrack => {
     if (blankVideoRef.current) return blankVideoRef.current;
     const canvas = document.createElement("canvas");
-    canvas.width = 16; canvas.height = 9;
+    canvas.width = 16;
+    canvas.height = 9;
     const ctx = canvas.getContext("2d")!;
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -52,7 +53,10 @@ export function useVoiceChannel(roomId: string) {
 
   /* ---------- helpers ---------- */
   const setSharingFlag = useCallback((sid: string, on: boolean) => {
-    setRemoteInfo((prev) => ({ ...prev, [sid]: { ...(prev[sid] || {}), sharing: on } }));
+    setRemoteInfo((prev) => ({
+      ...prev,
+      [sid]: { ...(prev[sid] || {}), sharing: on },
+    }));
   }, []);
 
   const upsertTrack = (s: MediaStream, track: MediaStreamTrack) => {
@@ -63,73 +67,104 @@ export function useVoiceChannel(roomId: string) {
     s.addTrack(track);
   };
 
-  const addTrackToRemote = useCallback((socketId: string, track: MediaStreamTrack) => {
-    if (!track) return;
-    setRemotes((prev) => {
-      const idx = prev.findIndex((r) => r.socketId === socketId);
-      if (idx >= 0) {
-        const s = prev[idx].stream;
-        upsertTrack(s, track);
-        return [...prev];
+  const addTrackToRemote = useCallback(
+    (socketId: string, track: MediaStreamTrack) => {
+      if (!track) return;
+      setRemotes((prev) => {
+        const idx = prev.findIndex((r) => r.socketId === socketId);
+        if (idx >= 0) {
+          const s = prev[idx].stream;
+          upsertTrack(s, track);
+          return [...prev];
+        }
+        const s = new MediaStream([track]);
+        return [...prev, { socketId, stream: s }];
+      });
+    },
+    []
+  );
+
+  const syncReceivers = useCallback(
+    (peerId: string) => {
+      const p = peers.current.get(peerId);
+      if (!p) return;
+      p.pc.getReceivers().forEach((rec) => {
+        if (rec.track) addTrackToRemote(peerId, rec.track);
+      });
+    },
+    [addTrackToRemote]
+  );
+
+  const safeMakeOffer = useCallback(
+    async (targetId: string) => {
+      const p = peers.current.get(targetId);
+      if (!p || p.makingOffer) return;
+      p.makingOffer = true;
+      try {
+        const offer = await p.pc.createOffer();
+        await p.pc.setLocalDescription(offer);
+        socket?.emit("offer", { targetSocketId: targetId, sdp: offer });
+      } finally {
+        p.makingOffer = false;
       }
-      const s = new MediaStream([track]);
-      return [...prev, { socketId, stream: s }];
-    });
-  }, []);
+    },
+    [socket]
+  );
 
-  const syncReceivers = useCallback((peerId: string) => {
-    const p = peers.current.get(peerId);
-    if (!p) return;
-    p.pc.getReceivers().forEach((rec) => { if (rec.track) addTrackToRemote(peerId, rec.track); });
-  }, [addTrackToRemote]);
+  const createPeer = useCallback(
+    (targetId: string) => {
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      });
 
-  const safeMakeOffer = useCallback(async (targetId: string) => {
-    const p = peers.current.get(targetId);
-    if (!p || p.makingOffer) return;
-    p.makingOffer = true;
-    try {
-      const offer = await p.pc.createOffer();
-      await p.pc.setLocalDescription(offer);
-      socket?.emit("offer", { targetSocketId: targetId, sdp: offer });
-    } finally {
-      p.makingOffer = false;
-    }
-  }, [socket]);
+      const audioTrans = pc.addTransceiver("audio", { direction: "sendrecv" });
+      const videoTrans = pc.addTransceiver("video", { direction: "sendrecv" });
 
-  const createPeer = useCallback((targetId: string) => {
-    const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+      pc.onnegotiationneeded = () => safeMakeOffer(targetId);
+      pc.onicecandidate = (e) => {
+        if (e.candidate)
+          socket?.emit("ice-candidate", {
+            targetSocketId: targetId,
+            candidate: e.candidate,
+          });
+      };
+      pc.ontrack = (e) => addTrackToRemote(targetId, e.track);
 
-    const audioTrans = pc.addTransceiver("audio", { direction: "sendrecv" });
-    const videoTrans = pc.addTransceiver("video", { direction: "sendrecv" });
+      const peer: Peer = {
+        pc,
+        audioSender: audioTrans.sender,
+        videoSender: videoTrans.sender,
+        makingOffer: false,
+      };
 
-    pc.onnegotiationneeded = () => safeMakeOffer(targetId);
-    pc.onicecandidate = (e) => { if (e.candidate) socket?.emit("ice-candidate", { targetSocketId: targetId, candidate: e.candidate }); };
-    pc.ontrack = (e) => addTrackToRemote(targetId, e.track);
+      // audio: gắn ngay mic (nếu có)
+      const micTrack = localMic.current?.getAudioTracks()[0] || null;
+      peer.audioSender?.replaceTrack(micTrack);
 
-    const peer: Peer = { pc, audioSender: audioTrans.sender, videoSender: videoTrans.sender, makingOffer: false };
+      // 🔑 video: gắn track hiện tại (nếu đang share thì là screen; nếu không thì blank)
+      const current = ensureCurrentVideoTrack();
+      peer.videoSender?.replaceTrack(current);
 
-    // audio: gắn ngay mic (nếu có)
-    const micTrack = localMic.current?.getAudioTracks()[0] || null;
-    peer.audioSender?.replaceTrack(micTrack);
+      peers.current.set(targetId, peer);
+      return peer;
+    },
+    [addTrackToRemote, safeMakeOffer, socket, ensureCurrentVideoTrack]
+  );
 
-    // 🔑 video: gắn track hiện tại (nếu đang share thì là screen; nếu không thì blank)
-    const current = ensureCurrentVideoTrack();
-    peer.videoSender?.replaceTrack(current);
-
-    peers.current.set(targetId, peer);
-    return peer;
-  }, [addTrackToRemote, safeMakeOffer, socket, ensureCurrentVideoTrack]);
-
-  const callPeer = useCallback(async (targetId: string) => {
-    const _ = peers.current.get(targetId) || createPeer(targetId);
-    await safeMakeOffer(targetId);
-  }, [createPeer, safeMakeOffer]);
+  const callPeer = useCallback(
+    async (targetId: string) => {
+      await safeMakeOffer(targetId);
+    },
+    [createPeer, safeMakeOffer]
+  );
 
   /* ---------- socket events ---------- */
   useEffect(() => {
     if (!socket) return;
 
-    const onExisting = (arr: Array<{ socketId: string; user?: any; sharing?: boolean }> | string[]) => {
+    const onExisting = (
+      arr: Array<{ socketId: string; user?: any; sharing?: boolean }> | string[]
+    ) => {
       const ids: string[] = [];
       setRemoteInfo((prev) => {
         const copy = { ...prev };
@@ -142,7 +177,11 @@ export function useVoiceChannel(roomId: string) {
             copy[it.socketId] = {
               ...(copy[it.socketId] || {}),
               username: it.user?.username || it.user?.name,
-              avatar: it.user?.avatar ? publicUrl(it.user.avatar) : it.user?.avatarUrl ? publicUrl(it.user.avatarUrl) : undefined,
+              avatar: it.user?.avatar
+                ? publicUrl(it.user.avatar)
+                : it.user?.avatarUrl
+                ? publicUrl(it.user.avatarUrl)
+                : undefined,
               sharing: !!it.sharing || false, // nếu server có trạng thái
             };
           }
@@ -152,13 +191,23 @@ export function useVoiceChannel(roomId: string) {
       ids.forEach((id) => callPeer(id));
     };
 
-    const onUserJoined = ({ socketId, user }: { socketId: string; user?: any }) => {
+    const onUserJoined = ({
+      socketId,
+      user,
+    }: {
+      socketId: string;
+      user?: any;
+    }) => {
       setRemoteInfo((prev) => ({
         ...prev,
         [socketId]: {
           ...(prev[socketId] || {}),
           username: user?.username || user?.name,
-          avatar: user?.avatar ? publicUrl(user.avatar) : user?.avatarUrl ? publicUrl(user.avatarUrl) : undefined,
+          avatar: user?.avatar
+            ? publicUrl(user.avatar)
+            : user?.avatarUrl
+            ? publicUrl(user.avatarUrl)
+            : undefined,
           sharing: false,
         },
       }));
@@ -169,7 +218,11 @@ export function useVoiceChannel(roomId: string) {
       peers.current.get(socketId)?.pc.close();
       peers.current.delete(socketId);
       setRemotes((prev) => prev.filter((r) => r.socketId !== socketId));
-      setRemoteInfo((prev) => { const c = { ...prev }; delete c[socketId]; return c; });
+      setRemoteInfo((prev) => {
+        const c = { ...prev };
+        delete c[socketId];
+        return c;
+      });
     };
 
     const onOffer = async ({ fromSocketId, sdp }: any) => {
@@ -191,10 +244,17 @@ export function useVoiceChannel(roomId: string) {
 
     const onIce = async ({ fromSocketId, candidate }: any) => {
       const peer = peers.current.get(fromSocketId);
-      if (peer && candidate) await peer.pc.addIceCandidate(new RTCIceCandidate(candidate));
+      if (peer && candidate)
+        await peer.pc.addIceCandidate(new RTCIceCandidate(candidate));
     };
 
-    const onScreenShare = ({ socketId, on }: { socketId: string; on: boolean }) => {
+    const onScreenShare = ({
+      socketId,
+      on,
+    }: {
+      socketId: string;
+      on: boolean;
+    }) => {
       setSharingFlag(socketId, !!on);
       if (on) syncReceivers(socketId);
     };
@@ -221,8 +281,11 @@ export function useVoiceChannel(roomId: string) {
   /* ---------- public API ---------- */
   const join = useCallback(async () => {
     if (joined || !socket) return;
-    localMic.current = await navigator.mediaDevices.getUserMedia({ audio: true });
-    setMicOn(true); setDeafened(false);
+    localMic.current = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
+    setMicOn(true);
+    setDeafened(false);
     const track = localMic.current.getAudioTracks()[0] || null;
     peers.current.forEach((p) => p.audioSender?.replaceTrack(track));
     socket.emit("join-call", { roomId });
@@ -244,13 +307,20 @@ export function useVoiceChannel(roomId: string) {
   }, [joined, socket, roomId]);
 
   const toggleMic = useCallback(() => {
-    const next = !micOn; setMicOn(next);
+    const next = !micOn;
+    setMicOn(next);
     localMic.current?.getAudioTracks().forEach((t) => (t.enabled = next));
   }, [micOn]);
 
   const toggleDeafen = useCallback(() => {
-    const next = !deafened; setDeafened(next);
-    setRemotes((rs) => { rs.forEach((r) => r.stream.getAudioTracks().forEach((t) => (t.enabled = !next))); return [...rs]; });
+    const next = !deafened;
+    setDeafened(next);
+    setRemotes((rs) => {
+      rs.forEach((r) =>
+        r.stream.getAudioTracks().forEach((t) => (t.enabled = !next))
+      );
+      return [...rs];
+    });
   }, [deafened]);
 
   // === share OFF: chuyển về blank và lưu vào currentVideoTrackRef ===
@@ -266,7 +336,9 @@ export function useVoiceChannel(roomId: string) {
   const startShare = useCallback(() => {
     if (sharing) return;
     (async () => {
-      const display: MediaStream = await (navigator.mediaDevices as any).getDisplayMedia({ video: true, audio: false });
+      const display: MediaStream = await (
+        navigator.mediaDevices as any
+      ).getDisplayMedia({ video: true, audio: false });
       const track = display.getVideoTracks()[0];
       if (!track) return;
       currentVideoTrackRef.current = track;
@@ -278,10 +350,22 @@ export function useVoiceChannel(roomId: string) {
   }, [sharing, stopShare, socket, roomId]);
 
   // bảo đảm có track hiện tại ngay từ đầu
-  useEffect(() => { ensureCurrentVideoTrack(); }, [ensureCurrentVideoTrack]);
+  useEffect(() => {
+    ensureCurrentVideoTrack();
+  }, [ensureCurrentVideoTrack]);
 
   return {
-    joined, micOn, deafened, sharing, remotes, remoteInfo,
-    join, leave, toggleMic, toggleDeafen, startShare, stopShare,
+    joined,
+    micOn,
+    deafened,
+    sharing,
+    remotes,
+    remoteInfo,
+    join,
+    leave,
+    toggleMic,
+    toggleDeafen,
+    startShare,
+    stopShare,
   };
 }

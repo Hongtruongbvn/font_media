@@ -1,31 +1,31 @@
 // File: apps/web/src/pages/ChatbotPage.tsx
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../features/auth/AuthContext';
-import api ,{ chatWithBot } from '../services/api'; // ✅ dùng hàm riêng
-import ChatMessageComponent from '../features/chat/components/ChatMessage';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
-import type { ChatMessage, ChatParticipant } from '../features/chat/types/Chat';
-import './ChatPageBot.scss';
+import React, { useState, useEffect, useRef } from "react";
+import { useAuth } from "../features/auth/AuthContext";
+import { chatWithBot } from "../services/api"; // ✅ dùng hàm riêng
+import ChatMessageComponent from "../features/chat/components/ChatMessage";
+import Input from "../components/common/Input";
+import Button from "../components/common/Button";
+import type { ChatMessage, ChatParticipant } from "../features/chat/types/Chat";
+import "./ChatPageBot.scss";
 
-type DisplayMessage = Omit<ChatMessage, 'chatroom'> & { chatroom?: string };
+type DisplayMessage = Omit<ChatMessage, "chatroom"> & { chatroom?: string };
 
 const BOT_SENDER: ChatParticipant = {
-  _id: 'chatbot-assistant',
-  username: 'Trợ lý ảo',
-  avatar: 'https://placehold.co/100x100/7B1FA2/FFFFFF?text=BOT',
+  _id: "chatbot-assistant",
+  username: "Trợ lý ảo",
+  avatar: "https://placehold.co/100x100/7B1FA2/FFFFFF?text=BOT",
 };
 
 const ChatbotPage: React.FC = () => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(scrollToBottom, [messages]);
@@ -34,7 +34,7 @@ const ChatbotPage: React.FC = () => {
     if (user) {
       setMessages([
         {
-          _id: 'initial-message',
+          _id: "initial-message",
           sender: BOT_SENDER,
           content: `Xin chào ${user.username}! Tôi là trợ lý ảo của bạn. Bạn cần giúp gì về game hoặc các tính năng trên nền tảng không?`,
           createdAt: new Date().toISOString(),
@@ -60,7 +60,7 @@ const ChatbotPage: React.FC = () => {
 
     setMessages((prev) => [...prev, userMessage]);
     const currentInput = inputValue;
-    setInputValue('');
+    setInputValue("");
     setIsLoading(true);
 
     try {
@@ -76,11 +76,11 @@ const ChatbotPage: React.FC = () => {
       const errorMessage: DisplayMessage = {
         _id: `error-${Date.now()}`,
         sender: BOT_SENDER,
-        content: 'Xin lỗi, tôi đang gặp sự cố. Vui lòng thử lại sau.',
+        content: "Xin lỗi, tôi đang gặp sự cố. Vui lòng thử lại sau.",
         createdAt: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
-      console.error('Error chatting with bot:', error);
+      console.error("Error chatting with bot:", error);
     } finally {
       setIsLoading(false);
     }

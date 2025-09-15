@@ -589,7 +589,7 @@ const PostCard: React.FC<PostCardProps> = ({
     );
   };
 
-  const renderPostContent = (p: Post, isOriginalPost: boolean) => {
+  const renderPostContent = (p: Post, _isOriginalPost: boolean) => {
     if (!p || !p.author) {
       return <div className="post-embed-error">Không thể tải bài viết.</div>;
     }

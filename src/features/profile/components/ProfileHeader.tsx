@@ -13,7 +13,7 @@ const ReportModal: React.FC<{
   onSubmit: (reason: string) => void;
   userId: string;
   username: string;
-}> = ({ onClose, onSubmit, userId, username }) => {
+}> = ({ onClose, onSubmit, username }) => {
   const [reason, setReason] = useState("");
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -22,19 +22,19 @@ const ReportModal: React.FC<{
         onClick={(e) => e.stopPropagation()}
       >
         <h3>🚩 Gửi báo cáo</h3>
-        
+
         {/* Link to view the reported user's profile */}
         <p className="report-link">
-          <a 
-            href={`/profile/${username}`} 
-            target="_blank" 
+          <a
+            href={`/profile/${username}`}
+            target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
           >
             Xem hồ sơ người dùng được báo cáo
           </a>
         </p>
-        
+
         <textarea
           placeholder="Nhập lý do bạn muốn báo cáo..."
           value={reason}
@@ -152,9 +152,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   };
 
   // Kiểm tra trạng thái tài khoản
-  const isAccountSuspendedOrBanned = 
-    userProfile.accountStatus === 'SUSPENDED' || 
-    userProfile.accountStatus === 'BANNED';
+  const isAccountSuspendedOrBanned =
+    userProfile.accountStatus === "SUSPENDED" ||
+    userProfile.accountStatus === "BANNED";
 
   if (isAccountSuspendedOrBanned && !isMyProfile) {
     return null; // Đã xử lý hiển thị thông báo ở ProfilePage
@@ -219,13 +219,17 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       <div className="action-section">
         {isMyProfile ? (
           <div className="profile-actions">
-            <Button onClick={handleEditProfile} variant="secondary" size="small">
+            <Button
+              onClick={handleEditProfile}
+              variant="secondary"
+              size="small"
+            >
               Chỉnh sửa hồ sơ
             </Button>
             {isAdmin && (
-              <Button 
-                onClick={handleGoToAdminDashboard} 
-                variant="primary" 
+              <Button
+                onClick={handleGoToAdminDashboard}
+                variant="primary"
                 size="small"
                 className="admin-dashboard-btn"
               >

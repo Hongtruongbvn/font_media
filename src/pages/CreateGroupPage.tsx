@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import * as groupApi from '../services/group.api';
 import { getInterests } from '../services/interest.api';
 import type { CreateGroupDto } from '../features/groups/types/GroupDto';
-import type { Interest } from '../features/groups/types/Group';
 import Button from '../components/common/Button';
 import './CreateGroupPage.scss';
 
