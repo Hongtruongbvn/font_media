@@ -1,7 +1,7 @@
 // AdminDashboardPage.tsx
-import React, { useEffect, useState } from 'react';
-import api from '../../services/api';
-import './AdminPages.scss';
+import React, { useEffect, useState } from "react";
+import api from "../../services/api";
+import "./AdminPages.scss";
 
 interface Interest {
   _id: string;
@@ -23,22 +23,23 @@ const AdminDashboardPage: React.FC = () => {
   const [interests, setInterests] = useState<Interest[]>([]);
   const [shopItems, setShopItems] = useState<ShopItem[]>([]);
   const [newItem, setNewItem] = useState({
-    name: '',
-    description: '',
-    type: 'AVATAR_FRAME',
+    name: "",
+    description: "",
+    type: "AVATAR_FRAME",
     price: 0,
     asset: null as File | null,
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [newInterest, setNewInterest] = useState('');
+  const [newInterest, setNewInterest] = useState("");
   const [newPackage, setNewPackage] = useState({
-    packageId: '',
-    name: '',
+    packageId: "",
+    name: "",
     coinsAmount: 0,
     price: 0,
-    currency: 'VND',
+    currency: "VND",
   });
   const [existingPackages, setExistingPackages] = useState<string[]>([]);
+  const [creatingPackage, setCreatingPackage] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -46,28 +47,29 @@ const AdminDashboardPage: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [statsRes, reportsRes, packagesRes, interestsRes, shopItemsRes] = await Promise.all([
-        api.get('/admin/stats'),
-        api.get('/reports/all'),
-        api.get('/coin-packages'),
-        api.get('/interests'),
-        api.get('/admin/shop/items')
-      ]);
-      
+      const [statsRes, reportsRes, packagesRes, interestsRes, shopItemsRes] =
+        await Promise.all([
+          api.get("/admin/stats"),
+          api.get("/reports/all"),
+          api.get("/coin-packages"),
+          api.get("/interests"),
+          api.get("/admin/shop/items"),
+        ]);
+
       setStats(statsRes.data);
       setReports(reportsRes.data);
       setExistingPackages(packagesRes.data.map((p: any) => p.packageId));
       setInterests(interestsRes.data);
       setShopItems(shopItemsRes.data);
     } catch (err) {
-      console.error('Lỗi tải dữ liệu:', err);
+      console.error("Lỗi tải dữ liệu:", err);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
-      setNewItem(prev => ({ ...prev, asset: file }));
+      setNewItem((prev) => ({ ...prev, asset: file }));
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
@@ -75,66 +77,93 @@ const AdminDashboardPage: React.FC = () => {
   const handleCreateItem = async () => {
     try {
       const formData = new FormData();
-      formData.append('name', newItem.name);
-      formData.append('description', newItem.description);
-      formData.append('type', newItem.type);
-      formData.append('price', newItem.price.toString());
-      if (newItem.asset) formData.append('file', newItem.asset);
+      formData.append("name", newItem.name);
+      formData.append("description", newItem.description);
+      formData.append("type", newItem.type);
+      formData.append("price", newItem.price.toString());
+      if (newItem.asset) formData.append("file", newItem.asset);
 
-      await api.post('/admin/shop/items', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      await api.post("/admin/shop/items", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      alert('Tạo vật phẩm thành công!');
-      setNewItem({ name: '', description: '', type: 'AVATAR_FRAME', price: 0, asset: null });
+      alert("Tạo vật phẩm thành công!");
+      setNewItem({
+        name: "",
+        description: "",
+        type: "AVATAR_FRAME",
+        price: 0,
+        asset: null,
+      });
       setPreviewUrl(null);
       fetchData();
     } catch (err) {
-      console.error('Lỗi tạo vật phẩm:', err);
-      alert('Lỗi khi tạo vật phẩm');
+      console.error("Lỗi tạo vật phẩm:", err);
+      alert("Lỗi khi tạo vật phẩm");
     }
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xoá vật phẩm này?')) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xoá vật phẩm này?")) return;
     try {
       await api.delete(`/admin/shop/items/${id}`);
-      alert('Xoá vật phẩm thành công!');
+      alert("Xoá vật phẩm thành công!");
       fetchData();
     } catch (err) {
-      console.error('Lỗi xoá vật phẩm:', err);
-      alert('Lỗi khi xoá vật phẩm');
+      console.error("Lỗi xoá vật phẩm:", err);
+      alert("Lỗi khi xoá vật phẩm");
     }
   };
 
   const handleCreateCoinPackage = async () => {
+    if (creatingPackage) return;
+
+    setCreatingPackage(true);
     try {
-      await api.post('/coin-packages', newPackage);
-      alert('Tạo gói coin thành công!');
-      setNewPackage({ packageId: '', name: '', coinsAmount: 0, price: 0, currency: 'VND' });
-      fetchData();
-    } catch (err) {
-      console.error('Lỗi tạo gói coin:', err);
+      await api.post("/coin-packages", newPackage);
+      alert("Tạo gói coin thành công!");
+
+      // Reset form
+      setNewPackage({
+        packageId: "",
+        name: "",
+        coinsAmount: 0,
+        price: 0,
+        currency: "VND",
+      });
+
+      // Cập nhật danh sách packages sau khi tạo thành công
+      const packagesRes = await api.get("/coin-packages");
+      setExistingPackages(packagesRes.data.map((p: any) => p.packageId));
+    } catch (err: any) {
+      console.error("Lỗi tạo gói coin:", err);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.errors?.[0]?.message ||
+        "Vui lòng thử lại";
+      alert("Lỗi khi tạo gói coin: " + errorMessage);
+    } finally {
+      setCreatingPackage(false);
     }
   };
 
   const handleCreateInterest = async () => {
     try {
-      await api.post('/admin/interests', { name: newInterest });
-      setNewInterest('');
-      alert('Tạo sở thích thành công!');
+      await api.post("/admin/interests", { name: newInterest });
+      setNewInterest("");
+      alert("Tạo sở thích thành công!");
       fetchData();
     } catch (err) {
-      console.error('Lỗi tạo sở thích:', err);
+      console.error("Lỗi tạo sở thích:", err);
     }
   };
 
   const handleDeleteInterest = async (id: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xoá sở thích này?')) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xoá sở thích này?")) return;
     try {
       await api.delete(`/admin/interests/${id}`);
       fetchData();
     } catch (err) {
-      console.error('Lỗi xoá sở thích:', err);
+      console.error("Lỗi xoá sở thích:", err);
     }
   };
 
@@ -143,31 +172,64 @@ const AdminDashboardPage: React.FC = () => {
       <h1>Bảng điều khiển Admin</h1>
 
       <div className="dashboard-grid">
-        {['Người dùng', 'Bài viết', 'Chờ duyệt', 'Bị khóa'].map((label, i) => (
+        {["Người dùng", "Bài viết", "Chờ duyệt", "Bị khóa"].map((label, i) => (
           <div className="stat-box" key={i}>
             <h3>{label}</h3>
-            <p>{[stats.totalUsers, stats.totalPosts, stats.pendingModeration, stats.bannedUsers][i] || 0}</p>
+            <p>
+              {[
+                stats.totalUsers,
+                stats.totalPosts,
+                stats.pendingModeration,
+                stats.bannedUsers,
+              ][i] || 0}
+            </p>
           </div>
         ))}
       </div>
 
       <div className="admin-section">
         <h2>Tạo vật phẩm</h2>
-        <input type="text" placeholder="Tên vật phẩm" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
-        <input type="text" placeholder="Mô tả" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
-        <select value={newItem.type} onChange={e => setNewItem({ ...newItem, type: e.target.value })}>
+        <input
+          type="text"
+          placeholder="Tên vật phẩm"
+          value={newItem.name}
+          onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Mô tả"
+          value={newItem.description}
+          onChange={(e) =>
+            setNewItem({ ...newItem, description: e.target.value })
+          }
+        />
+        <select
+          value={newItem.type}
+          onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
+        >
           <option value="AVATAR_FRAME">Khung avatar</option>
           <option value="PROFILE_BACKGROUND">Nền hồ sơ</option>
           <option value="PROFILE_EFFECT">Hiệu ứng hồ sơ</option>
           <option value="AVATAR_DECORATION">Trang trí avatar</option>
           <option value="NAMEPLATE_THEME">Bảng tên</option>
         </select>
-        <input type="number" placeholder="Giá (VNĐ)" value={newItem.price} onChange={e => setNewItem({ ...newItem, price: +e.target.value })} />
+        <input
+          type="number"
+          placeholder="Giá (VNĐ)"
+          value={newItem.price}
+          onChange={(e) => setNewItem({ ...newItem, price: +e.target.value })}
+        />
         <input type="file" accept="image/*" onChange={handleFileChange} />
-        {previewUrl && <img src={previewUrl} alt="Xem trước" style={{ width: 100, marginTop: 10 }} />}
+        {previewUrl && (
+          <img
+            src={previewUrl}
+            alt="Xem trước"
+            style={{ width: 100, marginTop: 10 }}
+          />
+        )}
         <button onClick={handleCreateItem}>Tạo vật phẩm</button>
 
-        <h3 style={{ marginTop: '2rem' }}>Danh sách vật phẩm</h3>
+        <h3 style={{ marginTop: "2rem" }}>Danh sách vật phẩm</h3>
         <table className="shop-items-table">
           <thead>
             <tr>
@@ -179,19 +241,23 @@ const AdminDashboardPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {shopItems.map(item => (
+            {shopItems.map((item) => (
               <tr key={item._id}>
                 <td>{item.name}</td>
                 <td>{item.type}</td>
                 <td>{item.price} VNĐ</td>
                 <td>
                   {item.assetUrl && (
-                    <img src={item.assetUrl} alt={item.name} style={{ width: 50, height: 50, objectFit: 'cover' }} />
+                    <img
+                      src={item.assetUrl}
+                      alt={item.name}
+                      style={{ width: 50, height: 50, objectFit: "cover" }}
+                    />
                   )}
                 </td>
                 <td>
-                  <button 
-                    onClick={() => handleDeleteItem(item._id)} 
+                  <button
+                    onClick={() => handleDeleteItem(item._id)}
                     className="delete-btn"
                   >
                     Xoá
@@ -212,30 +278,73 @@ const AdminDashboardPage: React.FC = () => {
             const id = `packed_${coins}_coin`;
             const name = `Gói ${coins} Coins`;
             const price = (coins / 100) * 10000;
-            setNewPackage({ packageId: id, name, coinsAmount: coins, price, currency: 'VND' });
-          }}>
+            setNewPackage({
+              packageId: id,
+              name,
+              coinsAmount: coins,
+              price,
+              currency: "VND",
+            });
+          }}
+        >
           <option value="">-- Chọn gói coin --</option>
-          {[50, 100, 150, 200, 300, 500].map(amount => {
+          {[50, 100, 150, 200, 300, 500].map((amount) => {
             const id = `packed_${amount}_coin`;
             const exists = existingPackages.includes(id);
             return (
               <option key={amount} value={amount} disabled={exists}>
-                {`Gói ${amount} Coins - ${(amount / 100) * 10000} VNĐ`} {exists ? '(Đã tồn tại)' : ''}
+                {`Gói ${amount} Coins - ${(amount / 100) * 10000} VNĐ`}{" "}
+                {exists ? "(Đã tồn tại)" : ""}
               </option>
             );
           })}
         </select>
-        <input type="text" placeholder="Mã gói" value={newPackage.packageId} readOnly />
-        <input type="text" placeholder="Tên gói" value={newPackage.name} readOnly />
-        <input type="number" placeholder="Số lượng coin" value={newPackage.coinsAmount} readOnly />
-        <input type="number" placeholder="Giá (VNĐ)" value={newPackage.price} readOnly />
-        <input type="text" placeholder="Đơn vị tiền tệ" value={newPackage.currency} readOnly />
-        <button onClick={handleCreateCoinPackage} disabled={!newPackage.coinsAmount}>Tạo gói coin</button>
+        <input
+          type="text"
+          placeholder="Mã gói"
+          value={newPackage.packageId}
+          readOnly
+        />
+        <input
+          type="text"
+          placeholder="Tên gói"
+          value={newPackage.name}
+          readOnly
+        />
+        <input
+          type="number"
+          placeholder="Số lượng coin"
+          value={newPackage.coinsAmount}
+          readOnly
+        />
+        <input
+          type="number"
+          placeholder="Giá (VNĐ)"
+          value={newPackage.price}
+          readOnly
+        />
+        <input
+          type="text"
+          placeholder="Đơn vị tiền tệ"
+          value={newPackage.currency}
+          readOnly
+        />
+        <button
+          onClick={handleCreateCoinPackage}
+          disabled={!newPackage.coinsAmount || creatingPackage}
+        >
+          {creatingPackage ? "Đang tạo..." : "Tạo gói coin"}
+        </button>
       </div>
 
       <div className="admin-section">
         <h2>Tạo sở thích</h2>
-        <input type="text" placeholder="Tên sở thích" value={newInterest} onChange={e => setNewInterest(e.target.value)} />
+        <input
+          type="text"
+          placeholder="Tên sở thích"
+          value={newInterest}
+          onChange={(e) => setNewInterest(e.target.value)}
+        />
         <button onClick={handleCreateInterest}>Tạo sở thích</button>
 
         <table className="interest-table">
@@ -246,16 +355,23 @@ const AdminDashboardPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {interests.map(interest => (
+            {interests.map((interest) => (
               <tr key={interest._id}>
                 <td>{interest.name}</td>
                 <td>
-                  <button onClick={() => handleDeleteInterest(interest._id)} className="delete-btn">Xoá</button>
+                  <button
+                    onClick={() => handleDeleteInterest(interest._id)}
+                    className="delete-btn"
+                  >
+                    Xoá
+                  </button>
                 </td>
               </tr>
             ))}
             {interests.length === 0 && (
-              <tr><td colSpan={2}>Không có sở thích nào.</td></tr>
+              <tr>
+                <td colSpan={2}>Không có sở thích nào.</td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -267,8 +383,12 @@ const AdminDashboardPage: React.FC = () => {
           {reports.map((report) => (
             <div key={report._id} className="report-card">
               <div className="report-header">
-                <span className="reporter">{report.reporter?.username || 'Ẩn danh'}</span>
-                <span className="report-date">{new Date(report.createdAt).toLocaleString()}</span>
+                <span className="reporter">
+                  {report.reporter?.username || "Ẩn danh"}
+                </span>
+                <span className="report-date">
+                  {new Date(report.createdAt).toLocaleString()}
+                </span>
               </div>
               <div className="report-target">
                 <span className="target-type">{report.targetType}</span>
