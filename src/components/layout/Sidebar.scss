@@ -1,0 +1,95 @@
+.sidebar {
+  background: #0e4420;
+  color: #d5e4c3;
+  width: 240px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #083b38;
+
+  .sidebar-top {
+    padding: 1rem;
+
+    .logo h1 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #c1cd78;
+      margin-bottom: 1rem;
+    }
+
+    .main-nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        color: #d5e4c3;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background 0.2s;
+
+        .icon {
+          margin-right: 0.5rem;
+          font-size: 1.2rem;
+        }
+
+        &:hover {
+          background: rgba(193, 205, 120, 0.1);
+        }
+
+        &.active {
+          background: #0077cc;
+          color: #e6f2b0;
+        }
+      }
+    }
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 1rem;
+    border-top: 1px solid #083b38;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .user-profile-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #d5e4c3;
+      text-decoration: none;
+
+      .username {
+        font-size: 0.95rem;
+        font-weight: 500;
+      }
+
+      &:hover {
+        color: #c1cd78;
+      }
+    }
+
+    .logout-button {
+      background: #dc3545;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem;
+      color: #e6f2b0;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #bb2d3b;
+      }
+
+      svg {
+        font-size: 1.1rem;
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+@use '../../../styles/index' as *;
+
+.shop-item-card {
+  background-color: $background-component;
+  border: 1px solid $surface-color;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform .25s ease, box-shadow .25s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $card-shadow-hover;
+  }
+
+  .item-preview {
+    background-color: $background-body;
+    /* giữ tỉ lệ ổn định, tránh nhảy layout */
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* hiển thị đúng PNG khung/asset */
+    }
+  }
+
+  .item-details {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+
+    h4 { font-size: 18px; font-weight: 600; margin-bottom: 10px; }
+    p  { font-size: 14px; color: $text-secondary; margin-bottom: 20px; flex: 1 1 auto; }
+  }
+
+  .item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px 20px; /* thêm padding đáy cho cân */
+    
+    .price  { font-size: 18px; font-weight: 700; color: $accent-light; }
+    button  { font-size: 14px; }
+  }
+}

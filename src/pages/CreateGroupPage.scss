@@ -1,0 +1,148 @@
+// File này sẽ tự động nhận các biến ($primary-color, $background-body...)
+// và hàm (rgba) từ cấu hình Vite, không cần @import hay @use ở đây.
+
+.create-group-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem;
+  min-height: calc(100vh - #{$header-height});
+  background-color: $background-body;
+}
+
+.create-group-form {
+  background-color: $background-component;
+  padding: 2.5rem;
+  border-radius: $border-radius-lg;
+  width: 100%;
+  max-width: 650px;
+  border: 1px solid $border-color;
+  box-shadow: $card-shadow;
+
+  h1 {
+    text-align: center;
+    color: $primary-color;
+    margin-bottom: 0.75rem;
+    font-size: 2rem;
+  }
+
+  p {
+    text-align: center;
+    color: $text-secondary;
+    margin-bottom: 2.5rem;
+  }
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+    color: $text-light;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  // Component <Input /> đã được style chung, chúng ta chỉ cần style
+  // cho textarea và select để đồng bộ.
+  textarea,
+  select {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background-color: $surface-color;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-md;
+    color: $text-light;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      // Dùng hàm rgba() để tương thích 100%
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='#{$text-secondary}' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+
+  .error-text {
+    color: $error-color;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: block;
+  }
+}
+
+.interests-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: $surface-color;
+  border-radius: $border-radius-md;
+  border: 1px solid $border-color;
+  margin-top: 0.5rem;
+
+  .interest-tag {
+    border-radius: 999px;
+  }
+}
+
+.submit-btn {
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+/* --- Thêm vào CreateGroupPage.scss --- */
+
+.interest-selection-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.interest-tag {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  user-select: none; // Ngăn người dùng vô tình bôi đen text khi nhấp đúp
+
+  // Ẩn ô checkbox gốc đi
+  input[type="checkbox"] {
+    display: none;
+  }
+
+  // Thay đổi style khi thẻ được chọn (khi checkbox bên trong nó được check)
+  &:has(input:checked) {
+    background-color: #007bff; // Màu xanh dương
+    color: white;
+    border-color: #007bff;
+  }
+
+  // Hiệu ứng khi di chuột
+  &:not(:has(input:checked)):hover {
+    background-color: #f0f0f0;
+  }
+}

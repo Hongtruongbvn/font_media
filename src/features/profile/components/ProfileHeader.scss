@@ -1,0 +1,153 @@
+@use '../../../styles/index' as *;
+@use "sass:color";
+
+.profile-header {
+  background-color: $background-component;
+  border-radius: $border-radius-lg;
+  margin-bottom: 20px;
+  overflow: hidden;
+
+  .cover-image-container {
+    height: 250px;
+    background-color: $surface-color;
+
+    .cover-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .profile-info-bar {
+    display: flex;
+    align-items: flex-end;
+    padding: 0 20px;
+    position: relative;
+    margin-top: -50px;
+    gap: 20px;
+    padding-bottom: 15px;
+  }
+
+  .avatar-section {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    flex-shrink: 0;
+
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 4px solid $background-component;
+      object-fit: cover;
+    }
+
+    .name-section {
+      h2 {
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      p {
+        color: $text-secondary;
+      }
+
+      .user-level {
+        margin-top: 4px;
+      }
+    }
+  }
+
+  .stats-section {
+    display: flex;
+    gap: 20px;
+    margin-left: auto;
+    margin-bottom: 10px;
+
+    .stat {
+      text-align: center;
+
+      strong {
+        font-size: 16px;
+        font-weight: 600;
+        display: block;
+      }
+
+      span {
+        font-size: 13px;
+        color: $text-secondary;
+      }
+    }
+  }
+
+  .action-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+
+    button {
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 6px;
+    }
+
+    .report-btn {
+      padding: 6px 14px;
+      font-size: 13px;
+      background-color: #e0245e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: color.adjust(#e0245e, $lightness: -5%);
+      }
+    }
+  }
+
+  .profile-bio {
+    padding: 0 20px 20px;
+    line-height: 1.6;
+    color: $text-secondary;
+  }
+
+  @media (max-width: 768px) {
+    .profile-info-bar {
+      flex-direction: column;
+      align-items: center;
+      margin-top: -70px;
+      text-align: center;
+    }
+
+    .stats-section,
+    .action-section {
+      margin-left: 0;
+      margin-bottom: 5px;
+    }
+  }
+}
+
+.report-modal {
+  textarea {
+    width: 100%;
+    min-height: 80px;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 12px;
+    background: $surface-color;
+    color: $text-light;
+    border: none;
+    resize: vertical;
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    button:last-child {
+      background: #e0245e;
+      color: white;
+    }
+  }
+}

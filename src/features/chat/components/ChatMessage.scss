@@ -1,0 +1,61 @@
+// @use '../../../styles/index' as *;
+
+.chat-message-wrapper {
+  display: flex;
+  gap: 10px;
+  max-width: 75%;
+  margin-bottom: 15px;
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    align-self: flex-end; // Đặt avatar ở dưới cùng
+  }
+
+  .message-bubble {
+    padding: 12px 16px;
+    border-radius: $border-radius-lg;
+    position: relative;
+    line-height: 1.5;
+
+    .sender-name {
+      display: block;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 5px;
+      color: $primary-accent;
+    }
+
+    .message-content {
+      white-space: pre-wrap; // Giữ lại các dấu xuống dòng
+    }
+
+    .timestamp {
+      font-size: 11px;
+      color: #ffffffcc; // 🌟 đổi màu trắng mờ dễ nhìn
+      display: block;
+      text-align: right;
+      margin-top: 5px;
+      margin-left: 10px;
+      font-weight: 500; // cho rõ hơn một chút
+    }
+  }
+
+  &.sent {
+    align-self: flex-end;
+    flex-direction: row-reverse; // Đảo ngược thứ tự cho tin nhắn gửi đi
+    .message-bubble {
+      background-color: $primary-main;
+      border-bottom-right-radius: $border-radius-sm;
+    }
+  }
+
+  &.received {
+    align-self: flex-start;
+    .message-bubble {
+      background-color: $surface-color;
+      border-bottom-left-radius: $border-radius-sm;
+    }
+  }
+}

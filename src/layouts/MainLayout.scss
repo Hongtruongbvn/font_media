@@ -1,0 +1,52 @@
+// @use '../styles/index' as *;
+
+
+@media (max-width: 1024px) {
+  .main-layout .rightbar {
+    display: none;
+  }
+}
+
+// Responsive: Ẩn Sidebar trên màn hình mobile
+@media (max-width: 768px) {
+  .main-layout .sidebar {
+    display: none; // Sau này sẽ thay bằng menu hamburger
+  }
+  .main-content {
+    padding: 15px;
+  }
+}
+.main-layout {
+  display: flex;
+  height: 100vh;
+  max-width: 1400px; // Giới hạn chiều rộng tối đa cho màn hình lớn
+  margin: 0 auto;
+  background-color: $background-body;
+}
+
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  border-left: 1px solid $surface-color;
+  border-right: 1px solid $surface-color;
+
+  // Thanh cuộn tùy chỉnh
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: $surface-color;
+    border-radius: 4px;
+  }
+}
+
+.main-content {
+  padding: 20px;
+}
+
+
