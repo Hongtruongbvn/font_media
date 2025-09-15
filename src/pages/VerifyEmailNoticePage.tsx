@@ -3,6 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import api from "../services/api";
 import Button from "../components/common/Button";
 import "./StatusPages.scss";
+import { toast } from "react-toastify";
 
 const VerifyEmailNoticePage: React.FC = () => {
   const location = useLocation();
@@ -13,9 +14,9 @@ const VerifyEmailNoticePage: React.FC = () => {
 
     try {
       await api.post("/api/auth/resend-verification", { email });
-      alert("Liên kết xác thực mới đã được gửi.");
+      toast.done("Liên kết xác thực mới đã được gửi.");
     } catch (err) {
-      alert("Không thể gửi lại email xác thực.");
+      toast.warn("Không thể gửi lại email xác thực.");
     }
   };
 
