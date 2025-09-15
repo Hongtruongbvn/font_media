@@ -118,6 +118,7 @@ const AppRoutes: React.FC = () => {
           <Route path="/banned" element={<BannedPage />} />
         </Route>
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+
         <Route
           path="/verify-email-notice"
           element={<VerifyEmailNoticePage />}

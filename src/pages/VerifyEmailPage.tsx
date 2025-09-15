@@ -18,32 +18,54 @@ const VerifyEmailPage: React.FC = () => {
     setToken(tokenFromUrl);
 
     if (tokenFromUrl) {
-      api
-        .get(`/auth/verify-email?token=${tokenFromUrl}`)
-        .then(() => {
-          setStatus("success");
-          setMessage("Xác thực thành công! Giờ bạn có thể đăng nhập.");
-        })
-        .catch((err) => {
-          setStatus("error");
-          setMessage(
-            err.response?.data?.message || "Token không hợp lệ hoặc đã hết hạn."
-          );
-        });
+      verifyEmailToken(tokenFromUrl);
     } else {
       setStatus("error");
       setMessage("Không tìm thấy token xác thực.");
     }
   }, [searchParams]);
 
-  const handleResendEmail = async () => {
-    if (!token) return;
+  const verifyEmailToken = async (token: string) => {
+    try {
+      // Use POST instead of GET for better security
+      const response = await api.post("/auth/verify-email", { token });
+      setStatus("success");
+      setMessage(
+        response.data.message ||
+          "Xác thực thành công! Giờ bạn có thể đăng nhập."
+      );
 
+      // Redirect to login after 3 seconds
+      setTimeout(() => {
+        navigate("/login", {
+          state: {
+            message: "Email đã được xác thực thành công. Vui lòng đăng nhập.",
+          },
+        });
+      }, 3000);
+    } catch (err: any) {
+      setStatus("error");
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Token không hợp lệ hoặc đã hết hạn.";
+      setMessage(errorMessage);
+
+      // Log the error for debugging
+      console.error("Email verification error:", err.response?.data);
+    }
+  };
+
+  const handleResendEmail = async () => {
     try {
       await api.post("/auth/resend-verification", { token });
-      setMessage("Liên kết xác thực mới đã được gửi.");
-    } catch (err) {
-      setMessage("Không thể gửi lại email xác thực.");
+      setMessage(
+        "Liên kết xác thực mới đã được gửi. Vui lòng kiểm tra email của bạn."
+      );
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || "Không thể gửi lại email xác thực.";
+      setMessage(errorMessage);
     }
   };
 
@@ -63,6 +85,14 @@ const VerifyEmailPage: React.FC = () => {
           <Button onClick={handleResendEmail} style={{ margin: "10px 0" }}>
             Gửi lại email xác thực
           </Button>
+        )}
+
+        {status === "success" && (
+          <div style={{ marginTop: "20px" }}>
+            <p>
+              Bạn sẽ được chuyển hướng đến trang đăng nhập trong giây lát...
+            </p>
+          </div>
         )}
 
         {status !== "verifying" && (
