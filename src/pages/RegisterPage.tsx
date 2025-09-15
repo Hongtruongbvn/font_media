@@ -21,7 +21,7 @@ const RegisterPage: React.FC = () => {
       // ✅ Sau khi đăng ký thì điều hướng sang verify-email
       navigate("/verify-email");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Đăng ký thất bại");
+      toast.error(err.response?.data?.message);
     }
   };
 
