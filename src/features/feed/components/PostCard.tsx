@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import type { JSX } from "react";
 import { Link } from "react-router-dom";
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   FaRegHeart,
   FaHeart,
@@ -36,7 +36,7 @@ const ReplyForm: React.FC<ReplyFormProps> = ({
   parentCommentId,
   onSubmit,
   onCancel,
-  placeholder = "Viết trả lời..."
+  placeholder = "Viết trả lời...",
 }) => {
   const [content, setContent] = useState("");
 
@@ -59,7 +59,9 @@ const ReplyForm: React.FC<ReplyFormProps> = ({
       />
       <div className="reply-actions">
         <button type="submit">Gửi</button>
-        <button type="button" onClick={onCancel}>Hủy</button>
+        <button type="button" onClick={onCancel}>
+          Hủy
+        </button>
       </div>
     </form>
   );
@@ -78,7 +80,7 @@ const CommentItem: React.FC<{
 
   const fetchReplies = async () => {
     if (loadingReplies) return;
-    
+
     setLoadingReplies(true);
     try {
       const response = await api.get(`/posts/comments/${comment._id}/replies`);
@@ -90,7 +92,10 @@ const CommentItem: React.FC<{
     }
   };
 
-  const handleReplySubmit = async (content: string, parentCommentId: string) => {
+  const handleReplySubmit = async (
+    content: string,
+    parentCommentId: string
+  ) => {
     try {
       await api.post(`/posts/comments/${parentCommentId}/replies`, { content });
       toast.success("Đã thêm trả lời");
@@ -103,7 +108,10 @@ const CommentItem: React.FC<{
   };
 
   return (
-    <div className={`comment ${level > 0 ? 'reply' : ''}`} style={{ marginLeft: level * 30 }}>
+    <div
+      className={`comment ${level > 0 ? "reply" : ""}`}
+      style={{ marginLeft: level * 30 }}
+    >
       <UserAvatar
         size={32}
         src={
@@ -119,7 +127,7 @@ const CommentItem: React.FC<{
           <strong>{comment.author.username}</strong>
         </Link>
         <p>{comment.content}</p>
-        
+
         <div className="comment-actions">
           <button
             className="reply-btn"
@@ -127,7 +135,7 @@ const CommentItem: React.FC<{
           >
             <FaReply /> Trả lời
           </button>
-          
+
           {user?._id === comment.author._id && (
             <button
               className="comment-delete-button"
@@ -149,12 +157,14 @@ const CommentItem: React.FC<{
         )}
 
         {comment.replyCount > 0 && replies.length === 0 && (
-          <button 
+          <button
             className="view-replies-btn"
             onClick={fetchReplies}
             disabled={loadingReplies}
           >
-            {loadingReplies ? 'Đang tải...' : `Xem ${comment.replyCount} trả lời`}
+            {loadingReplies
+              ? "Đang tải..."
+              : `Xem ${comment.replyCount} trả lời`}
           </button>
         )}
 
@@ -184,7 +194,6 @@ const CommentSection: React.FC<{
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
 
   const fetchComments = async () => {
     try {
@@ -220,7 +229,10 @@ const CommentSection: React.FC<{
     }
   };
 
-  const handleReplyComment = async (parentCommentId: string, content: string) => {
+  const handleReplyComment = async (
+    parentCommentId: string,
+    content: string
+  ) => {
     try {
       await api.post(`/posts/comments/${parentCommentId}/replies`, { content });
       await fetchComments();
@@ -292,7 +304,10 @@ const ReportModal: React.FC<{
   const [reason, setReason] = useState("");
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content report-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal-content report-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h3>🚩 Gửi báo cáo</h3>
         {postId && (
           <p className="report-link">
@@ -372,7 +387,11 @@ const EditModal: React.FC<{
 interface PostCardProps {
   post: Post;
   onReact: (postId: string, reaction: ReactionType) => void;
-  onRepost: (postId: string, content: string, visibility: PostVisibility) => void;
+  onRepost: (
+    postId: string,
+    content: string,
+    visibility: PostVisibility
+  ) => void;
   onPostDeleted: (postId: string) => void;
   onCommentAdded: (postId: string) => void;
   onCommentDeleted: (postId: string) => void;
@@ -392,7 +411,9 @@ const PostCard: React.FC<PostCardProps> = ({
   const [showComments, setShowComments] = useState(false);
   const [isRepostModalOpen, setRepostModalOpen] = useState(false);
   const [repostContent, setRepostContent] = useState("");
-  const [visibility, setVisibility] = useState<PostVisibility>(PostVisibility.FRIENDS_ONLY);
+  const [visibility, setVisibility] = useState<PostVisibility>(
+    PostVisibility.FRIENDS_ONLY
+  );
   const [showReactions, setShowReactions] = useState(false);
   const [localCommentCount, setLocalCommentCount] = useState(post.commentCount);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -400,17 +421,21 @@ const PostCard: React.FC<PostCardProps> = ({
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [reactionHoverTimeout, setReactionHoverTimeout] = useState<number | null>(null);
+  const [reactionHoverTimeout, setReactionHoverTimeout] = useState<
+    number | null
+  >(null);
 
   const isAuthor = user?._id === post.author?._id;
-  const isAdmin = user?.globalRole === 'ADMIN';
+  const isAdmin = user?.globalRole === "ADMIN";
   const currentUserReaction = user
     ? post.reactions.find((r) => r.user === user._id)
     : null;
 
   const handleReact = (reaction: ReactionType) => {
     onReact(post._id, reaction);
-    toast.success(`Đã bày tỏ cảm xúc ${reactionDetails[reaction].text.toLowerCase()}`);
+    toast.success(
+      `Đã bày tỏ cảm xúc ${reactionDetails[reaction].text.toLowerCase()}`
+    );
   };
 
   const handleRepostSubmit = () => {
@@ -444,14 +469,17 @@ const PostCard: React.FC<PostCardProps> = ({
 
   const handleCommentDeletedWrapper = async () => {
     try {
-      setLocalCommentCount(prev => Math.max(0, prev - 1));
+      setLocalCommentCount((prev) => Math.max(0, prev - 1));
       onCommentDeleted(post._id);
     } catch (error) {
       console.error("Error updating comment count:", error);
     }
   };
 
-  const handleUpdatePost = async (content: string, visibility: PostVisibility) => {
+  const handleUpdatePost = async (
+    content: string,
+    visibility: PostVisibility
+  ) => {
     try {
       const response = await api.patch(`/posts/${post._id}`, {
         content,
@@ -514,7 +542,12 @@ const PostCard: React.FC<PostCardProps> = ({
     return (
       <div className="lightbox-overlay" onClick={() => setLightboxIndex(null)}>
         <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
-          <button className="lightbox-close" onClick={() => setLightboxIndex(null)}>✕</button>
+          <button
+            className="lightbox-close"
+            onClick={() => setLightboxIndex(null)}
+          >
+            ✕
+          </button>
           {currentMedia.endsWith(".mp4") || currentMedia.includes("video") ? (
             <video controls autoPlay>
               <source src={currentMedia} type="video/mp4" />
@@ -555,33 +588,41 @@ const PostCard: React.FC<PostCardProps> = ({
       <div className="options-menu">
         {isAuthor && (
           <>
-            <button onClick={() => {
-              setEditModalOpen(true);
-              setShowOptionsMenu(false);
-            }}>
+            <button
+              onClick={() => {
+                setEditModalOpen(true);
+                setShowOptionsMenu(false);
+              }}
+            >
               <FaEdit /> Chỉnh sửa
             </button>
-            <button onClick={() => {
-              setDeleteModalOpen(true);
-              setShowOptionsMenu(false);
-            }}>
+            <button
+              onClick={() => {
+                setDeleteModalOpen(true);
+                setShowOptionsMenu(false);
+              }}
+            >
               <FaTrash /> Xóa
             </button>
           </>
         )}
-        {(isAdmin && !isAuthor) && (
-          <button onClick={() => {
-            setDeleteModalOpen(true);
-            setShowOptionsMenu(false);
-          }}>
+        {isAdmin && !isAuthor && (
+          <button
+            onClick={() => {
+              setDeleteModalOpen(true);
+              setShowOptionsMenu(false);
+            }}
+          >
             <FaTrash /> Xóa (Admin)
           </button>
         )}
         {!isAuthor && (
-          <button onClick={() => {
-            setReportModalOpen(true);
-            setShowOptionsMenu(false);
-          }}>
+          <button
+            onClick={() => {
+              setReportModalOpen(true);
+              setShowOptionsMenu(false);
+            }}
+          >
             <FaFlag /> Báo cáo
           </button>
         )}
@@ -696,7 +737,7 @@ const PostCard: React.FC<PostCardProps> = ({
               if (currentUserReaction) {
                 handleReact(currentUserReaction.type as ReactionType);
               } else {
-                handleReact('LIKE');
+                handleReact("LIKE");
               }
             }}
           >
@@ -709,12 +750,16 @@ const PostCard: React.FC<PostCardProps> = ({
                     ].color,
                 }}
               >
-                {reactionDetails[
-                  currentUserReaction.type as keyof typeof reactionDetails
-                ].icon}{" "}
-                {reactionDetails[
-                  currentUserReaction.type as keyof typeof reactionDetails
-                ].text}
+                {
+                  reactionDetails[
+                    currentUserReaction.type as keyof typeof reactionDetails
+                  ].icon
+                }{" "}
+                {
+                  reactionDetails[
+                    currentUserReaction.type as keyof typeof reactionDetails
+                  ].text
+                }
               </span>
             ) : (
               <span>
@@ -722,9 +767,9 @@ const PostCard: React.FC<PostCardProps> = ({
               </span>
             )}
           </button>
-          
+
           {showReactions && (
-            <div 
+            <div
               className="reaction-popup"
               onMouseEnter={() => {
                 // Clear timeout when mouse enters the popup
@@ -812,7 +857,11 @@ const PostCard: React.FC<PostCardProps> = ({
           onClose={() => setReportModalOpen(false)}
           onSubmit={async (reason) => {
             try {
-              await api.post("/reports", { type: "POST", targetId: post._id, reason });
+              await api.post("/reports", {
+                type: "POST",
+                targetId: post._id,
+                reason,
+              });
               setReportModalOpen(false);
             } catch (error) {
               console.error("Error submitting report:", error);
@@ -823,13 +872,29 @@ const PostCard: React.FC<PostCardProps> = ({
       )}
 
       {isDeleteModalOpen && (
-        <div className="modal-overlay" onClick={() => setDeleteModalOpen(false)}>
-          <div className="modal-content confirm-delete-modal" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="modal-overlay"
+          onClick={() => setDeleteModalOpen(false)}
+        >
+          <div
+            className="modal-content confirm-delete-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3>Xác nhận xóa</h3>
-            <p>Bạn có chắc chắn muốn xóa bài viết này không? Hành động này không thể hoàn tác.</p>
+            <p>
+              Bạn có chắc chắn muốn xóa bài viết này không? Hành động này không
+              thể hoàn tác.
+            </p>
             <div className="modal-actions">
-              <button className="btn-cancel" onClick={() => setDeleteModalOpen(false)}>Hủy</button>
-              <button className="btn-confirm-delete" onClick={confirmDelete}>Xóa</button>
+              <button
+                className="btn-cancel"
+                onClick={() => setDeleteModalOpen(false)}
+              >
+                Hủy
+              </button>
+              <button className="btn-confirm-delete" onClick={confirmDelete}>
+                Xóa
+              </button>
             </div>
           </div>
         </div>

@@ -1,10 +1,10 @@
 // File: src/pages/SelectInterestsPage.tsx
-import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import { useAuth } from '../features/auth/AuthContext';
-import Button from '../components/common/Button';
-import './SelectInterestsPage.scss';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../services/api";
+import { useAuth } from "../features/auth/AuthContext";
+import Button from "../components/common/Button";
+import "./SelectInterestsPage.scss";
 
 interface Interest {
   _id: string;
@@ -15,18 +15,18 @@ const SelectInterestsPage: React.FC = () => {
   const [interests, setInterests] = useState<Interest[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { fetchUser, user } = useAuth();
-console.log('user in SelectInterestsPage:', user);
+  console.log("user in SelectInterestsPage:", user);
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.get('/interests').then(res => {
-      console.log('res.data', res.data);
+    api.get("/interests").then((res) => {
+      console.log("res.data", res.data);
       setInterests(res.data);
     });
   }, []);
 
   const handleToggleInterest = (id: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
         newSet.delete(id);
@@ -39,15 +39,17 @@ console.log('user in SelectInterestsPage:', user);
 
   const handleSubmit = async () => {
     if (selectedIds.size < 3) {
-      alert('Vui lòng chọn ít nhất 3 sở thích.');
+      alert("Vui lòng chọn ít nhất 3 sở thích.");
       return;
     }
     try {
-      await api.patch('/users/me/interests', { interestIds: Array.from(selectedIds) });
+      await api.patch("/users/me/interests", {
+        interestIds: Array.from(selectedIds),
+      });
       await fetchUser(); // Cập nhật lại user context
-      navigate('/'); // Chuyển hướng về trang chủ
+      navigate("/"); // Chuyển hướng về trang chủ
     } catch (error) {
-      console.error('Lỗi khi lưu sở thích:', error);
+      console.error("Lỗi khi lưu sở thích:", error);
     }
   };
 
@@ -55,12 +57,17 @@ console.log('user in SelectInterestsPage:', user);
     <div className="select-interests-page">
       <div className="container">
         <h1>Chào mừng bạn!</h1>
-        <p>Hãy cho chúng tôi biết bạn quan tâm đến điều gì để có những gợi ý tốt nhất.</p>
+        <p>
+          Hãy cho chúng tôi biết bạn quan tâm đến điều gì để có những gợi ý tốt
+          nhất.
+        </p>
         <div className="interests-grid">
-          {interests.map(interest => (
+          {interests.map((interest) => (
             <button
               key={interest._id}
-              className={`interest-tag ${selectedIds.has(interest._id) ? 'selected' : ''}`}
+              className={`interest-tag ${
+                selectedIds.has(interest._id) ? "selected" : ""
+              }`}
               onClick={() => handleToggleInterest(interest._id)}
             >
               {interest.name}
