@@ -28,7 +28,7 @@ const VerifyEmailPage: React.FC = () => {
   const verifyEmailToken = async (token: string) => {
     try {
       // Use POST instead of GET for better security
-      const response = await api.post("/auth/verify-email", { token });
+      const response = await api.post("/api/auth/verify-email", { token });
       setStatus("success");
       setMessage(
         response.data.message ||
@@ -58,7 +58,7 @@ const VerifyEmailPage: React.FC = () => {
 
   const handleResendEmail = async () => {
     try {
-      await api.post("/auth/resend-verification", { token });
+      await api.post("/api/auth/resend-verification", { token });
       setMessage(
         "Liên kết xác thực mới đã được gửi. Vui lòng kiểm tra email của bạn."
       );

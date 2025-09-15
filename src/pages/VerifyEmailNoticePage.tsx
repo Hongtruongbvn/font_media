@@ -12,7 +12,7 @@ const VerifyEmailNoticePage: React.FC = () => {
     if (!email) return;
 
     try {
-      await api.post("/auth/resend-verification", { email });
+      await api.post("/api/auth/resend-verification", { email });
       alert("Liên kết xác thực mới đã được gửi.");
     } catch (err) {
       alert("Không thể gửi lại email xác thực.");
