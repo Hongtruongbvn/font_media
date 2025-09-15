@@ -11,12 +11,15 @@ const VerifyEmailPage: React.FC = () => {
     "verifying"
   );
   const [message, setMessage] = useState("Đang xác thực email của bạn...");
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = searchParams.get("token");
-    if (token) {
+    const tokenFromUrl = searchParams.get("token");
+    setToken(tokenFromUrl);
+
+    if (tokenFromUrl) {
       api
-        .get(`/auth/verify-email?token=${token}`)
+        .get(`/auth/verify-email?token=${tokenFromUrl}`)
         .then(() => {
           setStatus("success");
           setMessage("Xác thực thành công! Giờ bạn có thể đăng nhập.");
@@ -33,9 +36,15 @@ const VerifyEmailPage: React.FC = () => {
     }
   }, [searchParams]);
 
-  const handleResendEmail = () => {
-    // Điều hướng đến trang yêu cầu gửi lại email xác thực
-    navigate("/resend-verification");
+  const handleResendEmail = async () => {
+    if (!token) return;
+
+    try {
+      await api.post("/auth/resend-verification", { token });
+      setMessage("Liên kết xác thực mới đã được gửi.");
+    } catch (err) {
+      setMessage("Không thể gửi lại email xác thực.");
+    }
   };
 
   return (

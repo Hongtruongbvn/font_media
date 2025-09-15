@@ -1,5 +1,6 @@
 import React from "react";
 import { useLocation, Link } from "react-router-dom";
+import api from "../services/api";
 import Button from "../components/common/Button";
 import "./StatusPages.scss";
 
@@ -7,10 +8,15 @@ const VerifyEmailNoticePage: React.FC = () => {
   const location = useLocation();
   const { email, mailInfo } = location.state || {};
 
-  const handleResendEmail = () => {
-    // Logic để gửi lại email xác thực
-    console.log("Resend verification email to:", email);
-    // Gọi API để gửi lại email xác thực
+  const handleResendEmail = async () => {
+    if (!email) return;
+
+    try {
+      await api.post("/auth/resend-verification", { email });
+      alert("Liên kết xác thực mới đã được gửi.");
+    } catch (err) {
+      alert("Không thể gửi lại email xác thực.");
+    }
   };
 
   return (
